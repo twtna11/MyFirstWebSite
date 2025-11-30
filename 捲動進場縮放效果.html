@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>捲動進場縮放效果 (單一檔案)</title>
+
+    <style>
+        /* 只是為了讓頁面可以捲動 */
+        body { 
+            margin: 0; 
+            background-color: #f4f4f4; 
+        }
+        .placeholder { 
+            height: 50vh; 
+            background-color: #eee; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            font-size: 2em; 
+            color: #333; 
+        }
+        .section { 
+            padding: 40px 0; 
+            display: flex; /* 讓圖片排成一行 */
+            justify-content: space-around;
+            flex-wrap: wrap; /* 允許換行 */
+        }
+
+        /* 圖片基礎和初始樣式 */
+        .scroll-img {
+            display: block; 
+            width: 30%; /* 每行放三張圖片 */
+            min-width: 300px;
+            margin: 20px 0; /* 調整間距 */
+            height: auto;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            object-fit: cover; /* 確保圖片不變形 */
+
+            /* 初始狀態：略微縮小和透明度降低 */
+            transform: scale(0.9);
+            opacity: 0.6; 
+
+            /* 動畫過渡：讓縮放變化平滑 */
+            transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.6s ease;
+        }
+
+        /* 圖片進入視窗時套用的 Class (變大且完全顯示) */
+        .is-in-view {
+            transform: scale(1.1); 
+            opacity: 1; 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="placeholder">向下捲動查看動畫效果</div>
+
+    <div class="section">
+        <img class="scroll-img" src="https://picsum.photos/id/237/400/300" alt="圖片 1">
+        <img class="scroll-img" src="https://picsum.photos/id/1025/400/300" alt="圖片 2">
+        <img class="scroll-img" src="https://picsum.photos/id/1018/400/300" alt="圖片 3">
+    </div>
+
+    <div class="placeholder">再向下捲動</div>
+
+    <div class="section">
+        <img class="scroll-img" src="https://picsum.photos/id/1015/400/300" alt="圖片 4">
+        <img class="scroll-img" src="https://picsum.photos/id/1020/400/300" alt="圖片 5">
+        <img class="scroll-img" src="https://picsum.photos/id/1024/400/300" alt="圖片 6">
+    </div>
+
+    <div class="placeholder">頁面底部</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 獲取所有需要動畫效果的圖片元素
+            const images = document.querySelectorAll('.scroll-img');
+
+            // 設定 Intersection Observer 的選項
+            const options = {
+                // 以瀏覽器視窗作為根元素
+                root: null, 
+                // 在視窗邊緣觸發
+                rootMargin: '0px', 
+                // 當元素有 10% 進入視窗時觸發
+                threshold: 0.1 
+            };
+
+            // 建立 Intersection Observer 實例
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    // entry.isIntersecting 為 true 表示元素進入視窗
+                    if (entry.isIntersecting) {
+                        // 進入視窗：添加 is-in-view class，讓它變大
+                        entry.target.classList.add('is-in-view');
+                    } else {
+                        // 離開視窗：移除 is-in-view class，讓它變回初始狀態 (縮小)
+                        entry.target.classList.remove('is-in-view');
+                    }
+                });
+            }, options);
+
+            // 開始觀察每個圖片元素
+            images.forEach(image => {
+                observer.observe(image);
+            });
+        });
+    </script>
+</body>
+</html>
