@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prism.js 程式碼高亮與行號範例</title>
+    <link id="cssLink" href=https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css rel="stylesheet" />
+    <!--<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />-->
+    <!--<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />-->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet" />
+
+    <style>
+        /* 讓程式碼區塊在頁面中央，並增加一些邊距 */
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h2 {
+            margin-top: 30px;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 5px;
+        }
+
+        /* ========================================================= */
+        /* ★★★ 修正行號與程式碼重疊問題的關鍵 CSS ★★★ */
+        /* 當使用行號外掛時，<pre> 標籤需要足夠的左側邊距 (padding-left) 
+           來容納行號所佔的空間。 
+        */
+        pre.line-numbers {
+            position: relative; /* 確保行號可以相對定位 */
+            padding-left: 3.5em !important; /* 強制增加左側間距 */
+        }
+        
+        /* 確保行號本身的定位是正確的，雖然 line-numbers.css 已經定義，但這是備用修正 */
+        .line-numbers .line-numbers-rows {
+            left: -60px;
+        }
+        /* ========================================================= */
+
+    </style>
+    <script>
+      function changeCSS(newCSSFile) {
+        // 1. 取得 link 元素
+        var oldLink = document.getElementById("cssLink");
+
+        // 2. 更改 href 屬性
+        oldLink.href = newCSSFile;
+      }
+    </script>
+</head>
+<body>
+    <h1>Prism.js 程式碼高亮與行號演示</h1>
+    <p>以下程式碼區塊皆啟用了語法高亮和行號功能。</p>
+    主題切換：<button onclick="changeCSS('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css')">淺色</button>
+    <button onclick="changeCSS('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css')">深色(tomorrow)</button>
+    <button onclick="changeCSS('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css')">深色高亮(okaidia)</button>
+
+    <h2>1. HTML 程式碼範例 (language-markup)</h2>
+    <pre class="line-numbers"><code class="language-markup">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;範例網頁&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;這是標題&lt;/h1&gt;
+    &lt;p&gt;這是段落內容。&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+    <h2>2. CSS 程式碼範例 (language-css)</h2>
+    <pre class="line-numbers"><code class="language-css">/* 定義網頁主要樣式 */
+body {
+    font-family: 'Arial', sans-serif;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* 針對行動裝置優化 */
+@media (max-width: 600px) {
+    h1 {
+        font-size: 1.5em;
+        margin-bottom: 10px;
+    }
+} </code></pre>
+
+    <h2>3. JavaScript 程式碼範例 (language-javascript)</h2>
+    <pre class="line-numbers"><code class="language-javascript">// 這是 JavaScript 函式範例
+function calculateSum(a, b) {
+    let result = a + b; // 宣告變數
+    const PI = 3.14159; // 宣告常數
+    
+    if (result > 10) {
+        return `總和 ${result} 大於 10!`;
+    } else {
+        return '總和不大於 10';
+    }
+}
+
+// 輸出結果到控制台
+console.log(calculateSum(5, 7));</code></pre>
+
+    <h2>4. Python 程式碼範例 (language-python)</h2>
+    <pre class="line-numbers"><code class="language-python"># 這是 Python 程式碼範例
+class Animal:
+    def __init__(self, name):
+        self.name = name
+
+    def speak(self):
+        # 抽象方法，留待子類實作
+        raise NotImplementedError("Subclass must implement abstract method")
+
+class Dog(Animal):
+    def speak(self):
+        return f"{self.name} 說：汪！"
+
+my_dog = Dog("旺財")
+print(my_dog.speak())</code></pre>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+
+</body>
+</html>

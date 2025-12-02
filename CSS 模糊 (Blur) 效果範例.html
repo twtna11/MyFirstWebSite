@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS 模糊 (Blur) 效果範例</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .effect-section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        .image-box {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .image-wrapper {
+            width: 280px;
+            height: 180px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+
+        .image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: filter 0.3s ease-in-out; /* 添加過渡效果讓模糊更平滑 */
+        }
+
+        /* 1. 基本模糊效果 (filter: blur) */
+        .blur-none .image { filter: blur(0px); }
+        .blur-light .image { filter: blur(2px); }
+        .blur-heavy .image { filter: blur(8px); }
+
+        /* 2. 鼠標懸停 (Hover) 互動模糊 */
+        .hover-blur-wrapper {
+            position: relative;
+        }
+        .hover-blur-wrapper:hover .hover-blur-original {
+            filter: blur(5px); /* 懸停時對原圖進行模糊 */
+        }
+        .hover-blur-wrapper:hover .hover-blur-overlay {
+            opacity: 1; /* 懸停時顯示文字覆蓋 */
+        }
+        .hover-blur-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none; /* 讓鼠標事件穿透到下層圖片 */
+        }
+
+        /* 3. 毛玻璃/背景模糊效果 (backdrop-filter) */
+        .backdrop-blur-bg {
+            /* 設置一張背景圖 */
+            background: url('https://picsum.photos/400/300?random=5') center/cover;
+            width: 400px;
+            height: 300px;
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .frosted-glass {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 25px;
+            color: white;
+            font-size: 1.1em;
+            background-color: rgba(255, 255, 255, 0.2); /* 半透明背景 */
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            /* 關鍵屬性：應用於元素**後面的內容** */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px); /* 兼容性前綴 */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 4. SVG 濾鏡模糊 (FeGaussianBlur) */
+        .svg-blur-text {
+            color: #333;
+            font-size: 3em;
+            font-weight: bold;
+            padding: 10px;
+            background-color: #f0f0f0;
+            display: inline-block;
+        }
+        .svg-blur-heavy {
+            filter: url('#svg-blur-filter'); /* 引用 SVG 中的濾鏡 ID */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div class="effect-section">
+            <h2>1. 基本圖片模糊效果 (使用 `filter: blur()`)</h2>
+            <p>這個屬性會將模糊應用於整個元素，包括其內容。</p>
+            <div class="image-box">
+                <div class="image-wrapper blur-none">
+                    <img src="https://picsum.photos/400/300?random=1" alt="原圖" class="image">
+                </div>
+                <div class="image-wrapper blur-light">
+                    <img src="https://picsum.photos/400/300?random=1" alt="輕微模糊 (2px)" class="image">
+                    <p style="position:absolute; top:5px; left:5px; color:white; background:rgba(0,0,0,0.5); padding:3px;">2px</p>
+                </div>
+                <div class="image-wrapper blur-heavy">
+                    <img src="https://picsum.photos/400/300?random=1" alt="嚴重模糊 (8px)" class="image">
+                    <p style="position:absolute; top:5px; left:5px; color:white; background:rgba(0,0,0,0.5); padding:3px;">8px</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="effect-section">
+            <h2>2. 鼠標懸停互動效果（原圖模糊）</h2>
+            <p>當鼠標移動到圖片上時，圖片變模糊，並顯示資訊。</p>
+            <div class="image-box">
+                <div class="image-wrapper hover-blur-wrapper">
+                    <img src="https://picsum.photos/400/300?random=4" alt="Hover 效果" class="image hover-blur-original">
+                    <div class="hover-blur-overlay">查看細節</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="effect-section">
+            <h2>3. 毛玻璃/背景模糊效果 (使用 `backdrop-filter`)</h2>
+            <p>這在創建類似 macOS 或 iOS 的 UI 時非常有用。它只會模糊元素**後面的內容**。</p>
+            <div class="backdrop-blur-bg">
+                <div class="frosted-glass">
+                    毛玻璃效果 (10px Blur)
+                </div>
+            </div>
+        </div>
+
+        <div class="effect-section">
+            <h2>4. SVG 濾鏡模糊（高級效果）</h2>
+            <p>使用 SVG 的 `&lt;feGaussianBlur&gt;` 創建更細膩的模糊，這裡應用於文字。</p>
+            
+            <svg height="0" width="0">
+                <defs>
+                    <filter id="svg-blur-filter">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="3" /> 
+                    </filter>
+                </defs>
+            </svg>
+
+            <div class="svg-blur-text svg-blur-heavy">模糊文字範例</div>
+        </div>
+
+    </div>
+
+</body>
+</html>

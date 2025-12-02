@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>CSS Transition 與 Keyframes Animation 範例</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+
+        .box {
+            width: 150px;
+            height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* ----------------------- */
+        /* 1. Transition 範例 (綠色) */
+        /* ----------------------- */
+        #transition-box {
+            background-color: #4CAF50;
+            /* 定義要過渡的屬性 (transform, background-color) 和時間 */
+            transition: transform 0.5s ease-out, background-color 0.5s ease-out;
+            cursor: pointer; /* 提示可以互動 */
+        }
+
+        /* 觸發狀態 (鼠標懸停) */
+        #transition-box:hover {
+            /* 狀態 1: 變大 1.2 倍並旋轉 */
+            transform: scale(1.2) rotate(15deg);
+            /* 狀態 2: 改變背景顏色 */
+            background-color: #8BC34A;
+        }
+
+        /* ----------------------- */
+        /* 2. Keyframes Animation 範例 (藍色) */
+        /* ----------------------- */
+        #animation-box {
+            background-color: #2196F3;
+            /* 應用 Keyframes 動畫 */
+            animation-name: pulse-color-and-size;
+            animation-duration: 3s; /* 一次動畫循環的時間 */
+            animation-timing-function: ease-in-out;
+            animation-iteration-count: infinite; /* 無限循環 */
+            animation-direction: alternate; /* 自動反向播放 */
+        }
+
+        /* 定義 Keyframes (關鍵幀) */
+        @keyframes pulse-color-and-size {
+            0% {
+                /* 起始狀態 */
+                transform: scale(1);
+                background-color: #2196F3;
+                box-shadow: 0 0 0 0 rgba(33, 150, 243, 0.7);
+            }
+            50% {
+                /* 中間狀態 (50%) */
+                transform: scale(1.15); /* 放大 */
+                background-color: #03A9F4; /* 變淺 */
+            }
+            100% {
+                /* 結束狀態 */
+                transform: scale(1);
+                background-color: #2196F3;
+                box-shadow: 0 0 0 20px rgba(33, 150, 243, 0); /* 脈衝效果 */
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="box" id="transition-box">
+        Transition Box
+        <br>(滑鼠移上來)
+    </div>
+
+    <div class="box" id="animation-box">
+        Animation Box
+        <br>(自動運行)
+    </div>
+
+</body>
+</html>

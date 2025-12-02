@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>動態主題切換範例</title>
+    <style>
+        /* -------------------------------------- */
+        /* 1. CSS 變數定義 (預設為淺色主題) */
+        /* -------------------------------------- */
+        :root {
+            --background-color: #f7f7f7; /* 淺灰背景 */
+            --text-color: #1c1c1c;       /* 深色文字 */
+            --header-color: #ffffff;
+            --primary-button-color: #007bff;
+            --primary-button-text: #ffffff;
+            --border-color: #cccccc;
+            transition: background-color 0.3s, color 0.3s; /* 平滑過渡效果 */
+        }
+
+        /* -------------------------------------- */
+        /* 2. 深色主題覆蓋 */
+        /* -------------------------------------- */
+        body.dark-theme {
+            --background-color: #121212; /* 極深背景 */
+            --text-color: #f0f0f0;       /* 淺色文字 */
+            --header-color: #1e1e1e;
+            --primary-button-color: #64b5f6;
+            --primary-button-text: #121212;
+            --border-color: #444444;
+        }
+
+        /* -------------------------------------- */
+        /* 3. 使用變數應用樣式 */
+        /* -------------------------------------- */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        header {
+            background-color: var(--header-color);
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .content {
+            padding: 20px;
+            max-width: 800px;
+            margin: 20px auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        /* 主題切換按鈕樣式 */
+        #theme-toggle {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: var(--primary-button-color);
+            color: var(--primary-button-text);
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        #theme-toggle:hover {
+            opacity: 0.85;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>我的動態主題網頁</h1>
+        <button id="theme-toggle" onclick="toggleTheme()">切換主題 (淺/深)</button>
+    </header>
+
+    <div class="content">
+        <h2>歡迎使用！</h2>
+        <p>這段文字的顏色會隨著主題的切換而改變。注意頁面背景、文字和區塊邊框的變化。</p>
+        <p>此功能利用 **CSS 變數** 和 **JavaScript** 來達成：JavaScript 負責切換 `body` 標籤上的 `dark-theme` 類別，而 CSS 則根據這個類別來覆寫變數的值。</p>
+        <p>現在瀏覽器的設定是：<span id="system-pref">正在偵測...</span></p>
+    </div>
+
+    <script>
+        // --------------------------------------
+        // 4. JavaScript 邏輯
+        // --------------------------------------
+        
+        const THEME_KEY = 'user-theme'; // 用於 localStorage 的 Key
+
+        // --- 核心切換函數 ---
+        function toggleTheme() {
+            const body = document.body;
+            // 檢查 body 是否包含 dark-theme class
+            const isDark = body.classList.contains('dark-theme');
+            
+            if (isDark) {
+                // 如果是深色，就移除 class，變回淺色
+                body.classList.remove('dark-theme');
+                localStorage.setItem(THEME_KEY, 'light');
+            } else {
+                // 如果是淺色，就新增 class，切換到深色
+                body.classList.add('dark-theme');
+                localStorage.setItem(THEME_KEY, 'dark');
+            }
+        }
+        
+        // --- 5. 頁面載入時自動應用邏輯 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const body = document.body;
+            const storedTheme = localStorage.getItem(THEME_KEY);
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            // 1. 檢查 localStorage (用戶上次的選擇)
+            if (storedTheme === 'dark') {
+                body.classList.add('dark-theme');
+            } else if (storedTheme === 'light') {
+                body.classList.remove('dark-theme');
+            } 
+            // 2. 如果沒有存儲偏好，則根據系統設定來判斷
+            else if (prefersDark) {
+                body.classList.add('dark-theme');
+            }
+            
+            // 顯示系統偏好
+            document.getElementById('system-pref').textContent = prefersDark ? '深色' : '淺色';
+        });
+    </script>
+
+</body>
+</html>

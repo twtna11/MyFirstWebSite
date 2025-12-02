@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS 動畫效果範例：Transition 與 Keyframes</title>
+    <style>
+        /* 頁面基本樣式 */
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f7f9;
+        }
+
+        h2 {
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 5px;
+            margin-top: 40px;
+        }
+
+        .example-section {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .example-code {
+            flex: 1;
+            padding-left: 30px;
+            font-size: 0.9em;
+            color: #555;
+        }
+        
+        /* ------------------------------------------- */
+        /* 範例一：懸停按鈕變色 (Transition 轉場) */
+        /* ------------------------------------------- */
+        .transition-btn {
+            padding: 10px 20px;
+            background-color: #007bff; /* 初始顏色 */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            
+            /* 關鍵：定義過渡效果 - 讓背景色在 0.3 秒內平滑過渡 */
+            transition: background-color 0.3s ease, transform 0.1s; 
+        }
+
+        .transition-btn:hover {
+            background-color: #0056b3; /* 懸停結束狀態 */
+            transform: translateY(-2px); /* 輕微上浮增加互動感 */
+        }
+
+        /* ------------------------------------------- */
+        /* 範例二：連續旋轉載入圖示 (Keyframes 關鍵影格動畫) */
+        /* ------------------------------------------- */
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3; /* 淺灰色圓環 */
+            border-top: 5px solid #3498db; /* 藍色頂部，形成缺口 */
+            border-radius: 50%;
+            
+            /* 關鍵：應用動畫 (名稱 | 時長 | 速度曲線 | 重複次數) */
+            animation: spin 1s linear infinite;
+        }
+
+        /* 關鍵：定義關鍵影格 */
+        @keyframes spin {
+            0% { 
+                transform: rotate(0deg);
+            }
+            100% { 
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ------------------------------------------- */
+        /* 範例三：脈衝/彈跳效果 (Keyframes 關鍵影格動畫 - 多段狀態) */
+        /* ------------------------------------------- */
+        .pulse-box {
+            width: 80px;
+            height: 80px;
+            background-color: tomato;
+            border-radius: 8px;
+            
+            /* 關鍵：應用動畫 (名稱 | 時長 | 速度曲線 | 重複次數 | 方向) */
+            animation: pulse 2s ease-in-out infinite alternate;
+        }
+
+        /* 關鍵：定義多段關鍵影格 */
+        @keyframes pulse {
+            0% {
+                transform: scale(1); /* 初始大小 */
+                box-shadow: 0 0 0px rgba(255, 99, 71, 0.5);
+            }
+            50% {
+                transform: scale(1.1); /* 放大 10% */
+                box-shadow: 0 0 20px rgba(255, 99, 71, 0.7); /* 加上陰影效果 */
+            }
+            100% {
+                transform: scale(1); /* 回到初始大小 */
+                box-shadow: 0 0 0px rgba(255, 99, 71, 0.5);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>CSS 動畫範例總覽</h1>
+
+    <h2>1. 轉場 (Transition)：懸停按鈕變色</h2>
+    <div class="example-section">
+        <button class="transition-btn">滑鼠懸停變色</button>
+        <div class="example-code">
+            **作用：** 處理「開始」到「結束」的單一狀態平滑過渡，需事件觸發（如 `:hover`）。<br>
+            **核心 CSS：** `transition: background-color 0.3s ease;`
+        </div>
+    </div>
+
+    <h2>2. 關鍵影格 (Keyframes)：連續旋轉載入圖示</h2>
+    <div class="example-section">
+        <div class="loader-spinner"></div>
+        <div class="example-code">
+            **作用：** 用於複雜或循環動畫，可自動播放，不需要事件觸發。<br>
+            **核心 CSS：** `@keyframes spin {...}` 和 `animation: spin 1s linear infinite;`
+        </div>
+    </div>
+
+    <h2>3. 關鍵影格 (Keyframes)：脈衝/彈跳效果 (多段狀態)</h2>
+    <div class="example-section">
+        <div class="pulse-box"></div>
+        <div class="example-code">
+            **作用：** 通過多個 `0%`, `50%`, `100%` 定義複雜的動畫序列。<br>
+            **核心 CSS：** `@keyframes pulse {...}` 和 `animation: pulse 2s ease-in-out infinite alternate;`
+        </div>
+    </div>
+
+</body>
+</html>
