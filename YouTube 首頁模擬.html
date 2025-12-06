@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube 首頁模擬</title>
+    <style>
+        /* CSS 樣式區塊 */
+        :root {
+            /* 定義顏色變數 */
+            --bg-color: #0f0f0f; /* 接近 YouTube 深色模式背景 */
+            --text-color: #ffffff;
+            --secondary-text: #aaa;
+            --nav-bg: #212121;
+            --hover-bg: #383838;
+            --red-color: #ff0000;
+        }
+
+        /* 重設瀏覽器預設樣式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.4;
+            display: flex; /* 使用 Flexbox 佈局 */
+            min-height: 100vh;
+        }
+
+        /* 頂部導航欄 (Header) */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 56px;
+            background-color: var(--bg-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 100;
+            border-bottom: 1px solid var(--nav-bg);
+        }
+
+        .left-section, .right-section {
+            display: flex;
+            align-items: center;
+        }
+
+        .menu-icon {
+            cursor: pointer;
+            padding: 8px;
+            margin-right: 20px;
+            border-radius: 50%;
+        }
+
+        .menu-icon:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .logo {
+            font-weight: bold;
+            color: var(--text-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            font-size: 20px;
+        }
+
+        .logo-text {
+            margin-left: 5px;
+        }
+
+        .logo-red {
+            color: var(--red-color);
+            margin-right: 2px;
+            font-size: 24px;
+        }
+
+        .center-section {
+            display: flex;
+            flex: 0 1 730px; /* 限制搜尋欄寬度 */
+            max-width: 730px;
+            align-items: center;
+        }
+
+        .search-bar {
+            flex-grow: 1;
+            display: flex;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid var(--nav-bg);
+            background-color: #121212;
+            color: var(--text-color);
+            border-radius: 40px 0 0 40px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .search-btn {
+            background-color: var(--nav-bg);
+            border: 1px solid var(--nav-bg);
+            border-left: none;
+            padding: 0 20px;
+            cursor: pointer;
+            border-radius: 0 40px 40px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-btn:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            fill: var(--text-color); /* 讓 SVG 變成白色 */
+        }
+
+        .profile-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #888;
+            margin-left: 20px;
+            cursor: pointer;
+        }
+
+        /* 主要內容佈局 */
+        .main-container {
+            display: flex;
+            width: 100%;
+            padding-top: 56px; /* 留給頂部導航欄的空間 */
+        }
+
+        /* 側邊導航欄 (Sidebar) */
+        .sidebar {
+            width: 72px; /* 預設收起狀態 */
+            position: fixed;
+            top: 56px;
+            left: 0;
+            bottom: 0;
+            background-color: var(--bg-color);
+            padding-top: 10px;
+            overflow-y: auto;
+            transition: width 0.2s;
+            z-index: 99;
+        }
+
+        .sidebar.expanded {
+            width: 240px; /* 展開狀態 */
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--text-color);
+            border-radius: 10px;
+            margin: 0 12px;
+        }
+
+        .sidebar:not(.expanded) .nav-link {
+             justify-content: center;
+             flex-direction: column;
+             height: 74px;
+             margin: 0;
+             padding: 10px 5px;
+        }
+
+        .sidebar:not(.expanded) .nav-link-text {
+            font-size: 10px;
+            margin-top: 6px;
+        }
+
+        .nav-link:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .nav-link.active {
+            background-color: var(--hover-bg);
+        }
+
+        .nav-link-icon {
+            margin-right: 24px;
+        }
+
+        .sidebar:not(.expanded) .nav-link-icon {
+            margin-right: 0;
+        }
+
+        .sidebar.expanded .nav-link-text {
+            white-space: nowrap;
+        }
+
+        .sidebar:not(.expanded) .nav-link-text {
+            /* 隱藏展開模式下的文字，但保持在收起模式下顯示小標題 */
+            overflow: hidden;
+            display: block; /* 確保小標題能被看到 */
+        }
+
+
+        .expanded .nav-link {
+            justify-content: flex-start;
+            height: auto;
+            flex-direction: row;
+        }
+
+        .expanded .nav-link-icon {
+            margin-right: 24px;
+        }
+
+        .expanded .separator {
+            border-top: 1px solid var(--nav-bg);
+            margin: 10px 0;
+        }
+
+        /* 影片內容區 (Video Grid) */
+        .content {
+            flex-grow: 1;
+            padding: 24px 24px 0;
+            margin-left: 72px; /* 留給收起狀態側邊欄的空間 */
+            transition: margin-left 0.2s;
+        }
+
+        .content.expanded {
+            margin-left: 240px; /* 留給展開狀態側邊欄的空間 */
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* 自動調整欄數 */
+            gap: 20px; /* 影片間距 */
+        }
+
+        .video-card {
+            cursor: pointer;
+        }
+
+        .thumbnail-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 比例 */
+            margin-bottom: 10px;
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: var(--nav-bg);
+        }
+
+        .thumbnail {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-details {
+            display: flex;
+        }
+
+        .channel-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #888;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .video-meta h3 {
+            font-size: 1rem;
+            margin-bottom: 5px;
+            max-height: 40px; /* 限制標題行數 */
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .video-meta p {
+            font-size: 0.875rem;
+            color: var(--secondary-text);
+            margin-top: 2px;
+        }
+
+        /* 響應式調整 */
+        @media (max-width: 768px) {
+            .center-section {
+                display: none; /* 在小螢幕上隱藏搜尋欄 */
+            }
+
+            .sidebar {
+                display: none; /* 小螢幕上預設隱藏側邊欄 */
+            }
+
+            .content {
+                margin-left: 0;
+            }
+
+            .content.expanded {
+                margin-left: 0;
+            }
+
+            .header {
+                padding: 0 10px;
+            }
+
+            .menu-icon {
+                margin-right: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="left-section">
+            <div class="menu-icon" id="menu-toggle">
+                <svg viewBox="0 0 24 24" class="icon"><path d="M21 6H3V5h18v1zm0 5H3v1h18v-1zm0 6H3v1h18v-1z"></path></svg>
+            </div>
+            <a href="#" class="logo">
+                <span class="logo-red">▶</span>
+                <span class="logo-text">YouTube</span>
+            </a>
+        </div>
+
+        <div class="center-section">
+            <div class="search-bar">
+                <input type="text" class="search-input" placeholder="搜尋">
+                <button class="search-btn">
+                    <svg viewBox="0 0 24 24" class="icon"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="right-section">
+            <div class="menu-icon">
+                <svg viewBox="0 0 24 24" class="icon"><path d="M14 13h-3v3H9v-3H6v-2h3V8h2v3h3z"></path><path d="M18.39 12.01c-.04-.54-.08-1.09-.17-1.72-.11-.84-.23-1.68-.45-2.52-.1-.37-.23-.74-.38-1.12-.13-.34-.28-.68-.45-1.02-.31-.62-.64-1.21-1.03-1.78-.29-.44-.6-.85-.92-1.26-.52-.67-1.1-1.28-1.77-1.87-.2-.17-.4-.34-.6-.5-.53-.41-1.1-.78-1.7-.99-.3-.11-.61-.21-.92-.29-.6-.16-1.2-.24-1.8-.24-1.25 0-2.48.24-3.62.73-1.1.48-2.09 1.15-2.92 2.01-.84.84-1.5 1.83-1.99 2.93-.24.54-.45 1.1-.63 1.67-.17.58-.3 1.18-.4 1.78-.06.33-.11.67-.14 1.01-.06.59-.08 1.18-.08 1.78 0 .58.02 1.16.08 1.75.03.34.08.68.14 1.02.1.6.23 1.2.4 1.79.17.57.38 1.14.63 1.67.48 1.09 1.14 2.08 1.98 2.92.84.83 1.83 1.49 2.93 1.98 1.09.48 2.29.72 3.5.72 1.24 0 2.47-.24 3.57-.73 1.09-.48 2.06-1.14 2.88-1.98.83-.83 1.48-1.8 1.97-2.9.25-.53.46-1.1.63-1.67.17-.58.3-1.18.4-1.78.06-.33.11-.67.14-1.01.06-.59.08-1.18.08-1.78 0-.58-.02-1.16-.07-1.75z"></path></svg>
+            </div>
+            <div class="menu-icon">
+                <svg viewBox="0 0 24 24" class="icon"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.93 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"></path></svg>
+            </div>
+            <div class="profile-icon" title="使用者頭像"></div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <nav class="sidebar" id="sidebar">
+            <a href="#" class="nav-link active">
+                <svg viewBox="0 0 24 24" class="icon nav-link-icon"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path></svg>
+                <span class="nav-link-text">首頁</span>
+            </a>
+            <a href="#" class="nav-link">
+                <svg viewBox="0 0 24 24" class="icon nav-link-icon"><path d="M17.77 10.3l-1.3-.23.23-1.3c.3-1.59-1.21-3.1-2.8-2.8l-1.3.23-.23-1.3C11.89 4.14 10.15 4 8 4c-3.73 0-6.84 2.53-7.77 6l-.23 1.3 1.3.23c1.59.3 3.1-.96 2.8-2.55l-.23-1.3 1.3-.23C9.02 6.13 10.87 6 13 6c3.73 0 6.84 2.53 7.77 6l.23 1.3-1.3.23c-1.59.3-3.1-.96-2.8-2.55l.23-1.3z"></path></svg>
+                <span class="nav-link-text">Shorts</span>
+            </a>
+            <a href="#" class="nav-link">
+                <svg viewBox="0 0 24 24" class="icon nav-link-icon"><path d="M10 18v-6l5 3-5 3zM21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 16H4V6h16v13z"></path></svg>
+                <span class="nav-link-text">訂閱內容</span>
+            </a>
+
+            <div class="separator expanded"></div>
+
+            <a href="#" class="nav-link expanded">
+                <svg viewBox="0 0 24 24" class="icon nav-link-icon"><path d="M10 18v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path></svg>
+                <span class="nav-link-text">媒體庫</span>
+            </a>
+            <a href="#" class="nav-link expanded">
+                <svg viewBox="0 0 24 24" class="icon nav-link-icon"><path d="M12 1.5C6.28 1.5 1.5 6.28 1.5 12S6.28 22.5 12 22.5 22.5 17.72 22.5 12 17.72 1.5 12 1.5zm0 18c-3.45 0-6.25-2.8-6.25-6.25S8.55 6.25 12 6.25s6.25 2.8 6.25 6.25-2.8 6.25-6.25 6.25zM12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z"></path></svg>
+                <span class="nav-link-text">觀看紀錄</span>
+            </a>
+        </nav>
+
+        <main class="content" id="content">
+            <div class="video-grid">
+                <div class="video-card">
+                    <div class="thumbnail-container">
+                        <img src="https://via.placeholder.com/640x360?text=Video+1" alt="影片縮圖 1" class="thumbnail">
+                    </div>
+                    <div class="video-details">
+                        <div class="channel-avatar" title="頻道頭像"></div>
+                        <div class="video-meta">
+                            <h3>這是一個非常吸引人的 YouTube 影片標題，內容關於科技與生活</h3>
+                            <p>頻道名稱 • 12 萬次觀看 • 2 天前</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="video-card">
+                    <div class="thumbnail-container">
+                        <img src="https://via.placeholder.com/640x360?text=Video+2" alt="影片縮圖 2" class="thumbnail">
+                    </div>
+                    <div class="video-details">
+                        <div class="channel-avatar"></div>
+                        <div class="video-meta">
+                            <h3>旅遊Vlog：探索世界角落的隱藏秘境 (4K HDR)</h3>
+                            <p>旅遊探險家 • 88 萬次觀看 • 1 週前</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="video-card">
+                    <div class="thumbnail-container">
+                        <img src="https://via.placeholder.com/640x360?text=Video+3" alt="影片縮圖 3" class="thumbnail">
+                    </div>
+                    <div class="video-details">
+                        <div class="channel-avatar"></div>
+                        <div class="video-meta">
+                            <h3>五分鐘學會基礎烘焙：經典法式可頌</h3>
+                            <p>美食廚房 • 35 萬次觀看 • 3 小時前</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="video-card">
+                    <div class="thumbnail-container">
+                        <img src="https://via.placeholder.com/640x360?text=Video+4" alt="影片縮圖 4" class="thumbnail">
+                    </div>
+                    <div class="video-details">
+                        <div class="channel-avatar"></div>
+                        <div class="video-meta">
+                            <h3>【遊戲實況】這款獨立遊戲的劇情太震撼人心了！</h3>
+                            <p>遊戲之王 • 5 萬次觀看 • 1 天前</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="video-card">
+                    <div class="thumbnail-container">
+                        <img src="https://via.placeholder.com/640x360?text=Video+5" alt="影片縮圖 5" class="thumbnail">
+                    </div>
+                    <div class="video-details">
+                        <div class="channel-avatar"></div>
+                        <div class="video-meta">
+                            <h3>2024 年 Q3 科技趨勢報告與市場分析</h3>
+                            <p>科技新聞台 • 25 萬次觀看 • 1 個月前</p>
+                        </div>
+                    </div>
+                </div>
+
+                 <div class="video-card">
+                    <div class="thumbnail-container">
+                        <img src="https://via.placeholder.com/640x360?text=Video+6" alt="影片縮圖 6" class="thumbnail">
+                    </div>
+                    <div class="video-details">
+                        <div class="channel-avatar"></div>
+                        <div class="video-meta">
+                            <h3>【音樂】超好聽的 Chill Lofi 讀書專注音樂</h3>
+                            <p>Lofi Beats • 100 萬次觀看 • 4 週前</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="video-card">
+                    <div class="thumbnail-container">
+                        <img src="https://via.placeholder.com/640x360?text=Video+7" alt="影片縮圖 7" class="thumbnail">
+                    </div>
+                    <div class="video-details">
+                        <div class="channel-avatar"></div>
+                        <div class="video-meta">
+                            <h3>初學者瑜珈教學：從零開始的 20 分鐘練習</h3>
+                            <p>健康生活家 • 40 萬次觀看 • 6 天前</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="video-card">
+                    <div class="thumbnail-container">
+                        <img src="https://via.placeholder.com/640x360?text=Video+8" alt="影片縮圖 8" class="thumbnail">
+                    </div>
+                    <div class="video-details">
+                        <div class="channel-avatar"></div>
+                        <div class="video-meta">
+                            <h3>如何高效學習一門新語言？我的五個技巧分享</h3>
+                            <p>知識分享官 • 6 萬次觀看 • 2 個月前</p>
+                        </div>
+                    </div>
+                </div>
+
+                 <div class="video-card">
+                    <div class="thumbnail-container">
+                        <img src="https://via.placeholder.com/640x360?text=Video+9" alt="影片縮圖 9" class="thumbnail">
+                    </div>
+                    <div class="video-details">
+                        <div class="channel-avatar"></div>
+                        <div class="video-meta">
+                            <h3>街頭攝影挑戰：捕捉城市靈魂的瞬間</h3>
+                            <p>攝影大師 • 15 萬次觀看 • 5 天前</p>
+                        </div>
+                    </div>
+                </div>
+
+                 <div class="video-card">
+                    <div class="thumbnail-container">
+                        <img src="https://via.placeholder.com/640x360?text=Video+10" alt="影片縮圖 10" class="thumbnail">
+                    </div>
+                    <div class="video-details">
+                        <div class="channel-avatar"></div>
+                        <div class="video-meta">
+                            <h3>【電影評論】深度解析年度最佳科幻大片</h3>
+                            <p>影評人 • 9 萬次觀看 • 1 週前</p>
+                        </div>
+                    </div>
+                </div>
+
+                 <div class="video-card">
+                    <div class="thumbnail-container">
+                        <img src="https://via.placeholder.com/640x360?text=Video+11" alt="影片縮圖 11" class="thumbnail">
+                    </div>
+                    <div class="video-details">
+                        <div class="channel-avatar"></div>
+                        <div class="video-meta">
+                            <h3>DIY 教學：舊家具翻新煥發新生命</h3>
+                            <p>居家改造王 • 20 萬次觀看 • 3 週前</p>
+                        </div>
+                    </div>
+                </div>
+
+                 <div class="video-card">
+                    <div class="thumbnail-container">
+                        <img src="https://via.placeholder.com/640x360?text=Video+12" alt="影片縮圖 12" class="thumbnail">
+                    </div>
+                    <div class="video-details">
+                        <div class="channel-avatar"></div>
+                        <div class="video-meta">
+                            <h3>歷史冷知識：你不知道的古文明秘密</h3>
+                            <p>歷史解密 • 7 萬次觀看 • 8 小時前</p>
+                        </div>
+                    </div>
+                </div>
+                </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const content = document.getElementById('content');
+            
+            // 預設側邊欄是收起狀態 (72px)
+            let isSidebarExpanded = false; 
+
+            menuToggle.addEventListener('click', () => {
+                // 切換展開/收起狀態
+                isSidebarExpanded = !isSidebarExpanded;
+
+                if (isSidebarExpanded) {
+                    sidebar.classList.add('expanded');
+                    content.classList.add('expanded');
+                } else {
+                    sidebar.classList.remove('expanded');
+                    content.classList.remove('expanded');
+                }
+
+                // 在收起和展開狀態下，切換只有展開狀態才顯示的元素
+                // 這是為了在收起狀態下，只顯示三個主要連結 (首頁、Shorts、訂閱)
+                const expandedElements = sidebar.querySelectorAll('.expanded');
+                expandedElements.forEach(el => {
+                    // 只有在展開狀態時，才顯示這些元素
+                    el.style.display = isSidebarExpanded ? '' : 'none';
+                });
+
+                // 首次加載時，預設是收起狀態 (isSidebarExpanded=false)，所以要確保隱藏
+                if (!isSidebarExpanded) {
+                    expandedElements.forEach(el => {
+                        el.style.display = 'none';
+                    });
+                }
+            });
+
+            // 網頁載入時，設定預設的收起狀態 (模擬 YouTube 預設)
+            const expandedElements = sidebar.querySelectorAll('.expanded');
+            expandedElements.forEach(el => {
+                // 網頁載入時，先隱藏所有 expanded 相關的元素
+                el.style.display = 'none';
+            });
+        });
+    </script>
+
+</body>
+</html>
