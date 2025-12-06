@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Interactive Pikachu</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #87CEEB; /* 天空藍背景 */
+            font-family: "Noto Sans TC", sans-serif;
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            text-align: center;
+            color: #333;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 10px 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+    <!-- 使用 Import Map 來管理 Three.js 的模組 -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div id="info">
+        <b>3D 皮卡丘</b><br>
+        滑鼠左鍵旋轉 | 滾輪縮放 | 右鍵平移
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- 全域變數 ---
+        let scene, camera, renderer, controls;
+        let pikachuGroup;
+
+        // --- 初始化 ---
+        function init() {
+            // 1. 建立場景
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB); // 天空藍
+            // 添加一點霧氣效果
+            scene.fog = new THREE.Fog(0x87CEEB, 10, 50);
+
+            // 2. 建立相機
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(0, 3, 8); // 相機位置
+
+            // 3. 建立渲染器
+            renderer = new THREE.WebGLRenderer({ antialias: true }); // 開啟抗鋸齒
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true; // 開啟陰影
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.body.appendChild(renderer.domElement);
+
+            // 4. 控制器 (OrbitControls)
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true; // 啟用阻尼效果（滑動感）
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 2;
+            controls.maxDistance = 20;
+            controls.target.set(0, 1, 0); // 旋轉中心設為皮卡丘的高度
+
+            // 5. 燈光
+            addLights();
+
+            // 6. 地板
+            addFloor();
+
+            // 7. 建立皮卡丘模型
+            createPikachu();
+
+            // 8. 監聽視窗大小改變
+            window.addEventListener('resize', onWindowResize);
+
+            // 9. 開始動畫迴圈
+            animate();
+        }
+
+        function addLights() {
+            // 環境光 (整體亮度)
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            // 方向光 (模擬太陽，產生陰影)
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+            dirLight.position.set(5, 10, 7);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 1024;
+            dirLight.shadow.mapSize.height = 1024;
+            scene.add(dirLight);
+        }
+
+        function addFloor() {
+            const planeGeometry = new THREE.PlaneGeometry(100, 100);
+            const planeMaterial = new THREE.MeshStandardMaterial({ color: 0x90EE90 }); // 草地綠
+            const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+            plane.rotation.x = -Math.PI / 2;
+            plane.receiveShadow = true;
+            scene.add(plane);
+        }
+
+        function createPikachu() {
+            pikachuGroup = new THREE.Group();
+
+            // 定義材質
+            const yellowMat = new THREE.MeshStandardMaterial({ color: 0xFFD700, roughness: 0.4 }); // 皮卡丘黃
+            const blackMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.2 }); // 黑色 (眼睛、耳尖)
+            const redMat = new THREE.MeshStandardMaterial({ color: 0xFF4500, roughness: 0.4 });   // 紅色 (臉頰)
+            const brownMat = new THREE.MeshStandardMaterial({ color: 0x8B4513 }); // 棕色 (條紋、尾巴根部)
+
+            // --- 身體 (Body) ---
+            // 使用膠囊形狀或是圓柱體加半球體
+            const bodyGeo = new THREE.CylinderGeometry(0.6, 0.7, 1.2, 32);
+            const body = new THREE.Mesh(bodyGeo, yellowMat);
+            body.position.y = 0.6;
+            body.castShadow = true;
+            pikachuGroup.add(body);
+
+            // --- 頭部 (Head) ---
+            const headGeo = new THREE.SphereGeometry(0.65, 32, 32);
+            const head = new THREE.Mesh(headGeo, yellowMat);
+            head.position.y = 1.3;
+            head.castShadow = true;
+            pikachuGroup.add(head);
+
+            // --- 耳朵 (Ears) ---
+            const createEar = (xPosition, zRotation) => {
+                const earGroup = new THREE.Group();
+                
+                // 耳朵底部 (黃色)
+                const earBaseGeo = new THREE.CylinderGeometry(0.08, 0.15, 0.6, 16);
+                earBaseGeo.translate(0, 0.3, 0); // 移動幾何中心，方便旋轉
+                const earBase = new THREE.Mesh(earBaseGeo, yellowMat);
+                
+                // 耳朵尖端 (黑色)
+                const earTipGeo = new THREE.ConeGeometry(0.08, 0.2, 16);
+                earTipGeo.translate(0, 0.7, 0); // 接在底部上面
+                const earTip = new THREE.Mesh(earTipGeo, blackMat);
+
+                earGroup.add(earBase);
+                earGroup.add(earTip);
+
+                // 定位
+                earGroup.position.set(xPosition, 1.7, 0);
+                earGroup.rotation.z = zRotation; // 向外張開
+                earGroup.rotation.x = 0.2; // 稍微向前傾
+                earGroup.castShadow = true;
+                return earGroup;
+            };
+
+            pikachuGroup.add(createEar(-0.4, 0.5));  // 左耳
+            pikachuGroup.add(createEar(0.4, -0.5)); // 右耳
+
+            // --- 臉部 (Face) ---
+            // 眼睛
+            const eyeGeo = new THREE.SphereGeometry(0.08, 16, 16);
+            const leftEye = new THREE.Mesh(eyeGeo, blackMat);
+            leftEye.position.set(-0.25, 1.4, 0.55);
+            const rightEye = new THREE.Mesh(eyeGeo, blackMat);
+            rightEye.position.set(0.25, 1.4, 0.55);
+            pikachuGroup.add(leftEye, rightEye);
+
+            // 眼神光 (白色小點)
+            const shineGeo = new THREE.SphereGeometry(0.025, 8, 8);
+            const whiteMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+            const leftShine = new THREE.Mesh(shineGeo, whiteMat);
+            leftShine.position.set(-0.28, 1.43, 0.61);
+            const rightShine = new THREE.Mesh(shineGeo, whiteMat);
+            rightShine.position.set(0.22, 1.43, 0.61);
+            pikachuGroup.add(leftShine, rightShine);
+
+            // 臉頰 (紅色)
+            const cheekGeo = new THREE.SphereGeometry(0.15, 16, 16);
+            const leftCheek = new THREE.Mesh(cheekGeo, redMat);
+            leftCheek.position.set(-0.45, 1.25, 0.45);
+            leftCheek.scale.set(1, 1, 0.5); // 壓扁一點貼在臉上
+            const rightCheek = new THREE.Mesh(cheekGeo, redMat);
+            rightCheek.position.set(0.45, 1.25, 0.45);
+            rightCheek.scale.set(1, 1, 0.5);
+            pikachuGroup.add(leftCheek, rightCheek);
+
+            // 鼻子
+            const noseGeo = new THREE.ConeGeometry(0.03, 0.05, 8);
+            const nose = new THREE.Mesh(noseGeo, blackMat);
+            nose.position.set(0, 1.3, 0.65);
+            nose.rotation.x = Math.PI / 2;
+            pikachuGroup.add(nose);
+
+            // --- 手 (Arms) ---
+            const armGeo = new THREE.CylinderGeometry(0.1, 0.12, 0.5, 16);
+            armGeo.translate(0, -0.25, 0); // 樞紐點在肩膀
+            
+            const leftArm = new THREE.Mesh(armGeo, yellowMat);
+            leftArm.position.set(-0.5, 1.0, 0.2);
+            leftArm.rotation.z = -0.5;
+            leftArm.rotation.x = -0.5;
+            
+            const rightArm = new THREE.Mesh(armGeo, yellowMat);
+            rightArm.position.set(0.5, 1.0, 0.2);
+            rightArm.rotation.z = 0.5;
+            rightArm.rotation.x = -0.5;
+            
+            pikachuGroup.add(leftArm, rightArm);
+
+            // --- 腳 (Legs) ---
+            const legGeo = new THREE.CapsuleGeometry(0.15, 0.3, 4, 8);
+            const leftLeg = new THREE.Mesh(legGeo, yellowMat);
+            leftLeg.position.set(-0.4, 0.15, 0.3);
+            leftLeg.rotation.x = -Math.PI / 2;
+            
+            const rightLeg = new THREE.Mesh(legGeo, yellowMat);
+            rightLeg.position.set(0.4, 0.15, 0.3);
+            rightLeg.rotation.x = -Math.PI / 2;
+            
+            pikachuGroup.add(leftLeg, rightLeg);
+
+            // --- 尾巴 (Tail) - 閃電形狀 ---
+            const tailShape = new THREE.Shape();
+            tailShape.moveTo(0, 0);
+            tailShape.lineTo(0.2, 0.3);
+            tailShape.lineTo(0.1, 0.3);
+            tailShape.lineTo(0.3, 0.6);
+            tailShape.lineTo(0.2, 0.6);
+            tailShape.lineTo(0.5, 1.0); // 尾巴頂端
+            tailShape.lineTo(0.7, 1.0); // 寬度
+            tailShape.lineTo(0.4, 0.6);
+            tailShape.lineTo(0.5, 0.6);
+            tailShape.lineTo(0.3, 0.3);
+            tailShape.lineTo(0.4, 0.3);
+            tailShape.lineTo(0.2, 0);
+            
+            const extrudeSettings = { depth: 0.1, bevelEnabled: false };
+            const tailGeo = new THREE.ExtrudeGeometry(tailShape, extrudeSettings);
+            const tail = new THREE.Mesh(tailGeo, yellowMat);
+            
+            // 尾巴根部棕色
+            // 這邊簡單處理，直接整個黃色，如果要根部棕色需要更複雜的幾何分割，
+            // 為了保持程式碼簡潔，我們先做純黃色閃電尾巴。
+            
+            tail.position.set(0, 0.4, -0.6); // 屁股位置
+            tail.rotation.y = 0.2; // 稍微歪一邊
+            tail.rotation.x = -0.2; // 向後傾斜
+            tail.castShadow = true;
+            pikachuGroup.add(tail);
+
+            scene.add(pikachuGroup);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            controls.update(); // 必須更新 OrbitControls
+
+            // 簡單的呼吸動畫
+            const time = Date.now() * 0.002;
+            if(pikachuGroup) {
+                pikachuGroup.position.y = Math.sin(time) * 0.05; // 上下浮動
+                
+                // 耳朵輕微擺動 (如果我們有保存耳朵的參考，這邊可以做更細緻的動畫)
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // 啟動程式
+        init();
+
+    </script>
+</body>
+</html>
