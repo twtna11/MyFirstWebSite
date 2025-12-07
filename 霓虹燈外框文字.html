@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>霓虹燈外框文字</title>
+    <style>
+        /* 1. 背景設為黑色，霓虹燈才明顯 */
+        body {
+            background-color: #000;
+            display: flex;
+            /* 改為 column 讓控制器排在文字下方 */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: sans-serif;
+            color: #fff;
+        }
+
+        /* 2. 霓虹燈文字樣式 */
+        .neon-text {
+            font-size: 80px;
+            font-weight: bold;
+            line-height: 1.2; /* 讓多行文字不擠在一起 */
+            text-align: center;
+            
+            /* 定義變數 */
+            --glow: 10px;        /* 光暈擴散範圍 */
+            --neon-color: #0ff;  /* 顏色 */
+            --stroke-width: 2px; /* 燈管粗細 */
+            --brightness: 100%;  /* 整體亮度 */
+            --font-family: sans-serif; /* 新增：字型變數 */
+
+            /* 應用字型變數 */
+            font-family: var(--font-family);
+
+            /* 關鍵：讓文字內部透明，只留邊框 */
+            color: transparent;
+            
+            /* 使用變數設定邊框顏色與粗細 */
+            -webkit-text-stroke: var(--stroke-width) var(--neon-color); 
+            
+            /* 關鍵：利用 CSS 變數計算擴散範圍與顏色 */
+            text-shadow: 
+                0 0 var(--glow) var(--neon-color),
+                0 0 calc(var(--glow) * 2) var(--neon-color),
+                0 0 calc(var(--glow) * 4) var(--neon-color);
+            
+            /* 應用亮度濾鏡 */
+            filter: brightness(var(--brightness));
+                
+            /* 加一點簡單的閃爍動畫讓它更像真的 */
+            /* animation: flicker 1.5s infinite alternate; */
+        }
+
+        /* 3. 簡單的閃爍動畫關鍵影格 */
+        /* @keyframes flicker {
+            0% { opacity: 1; }
+            100% { opacity: 0.7; } 
+        }*/
+
+        /* 4. 控制器樣式 */
+        .controls {
+            margin-top: 50px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 15px; /* 讓控制項之間有點距離 */
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        input[type=range], input[type=color], select {
+            cursor: pointer;
+            vertical-align: middle;
+        }
+        select {
+            padding: 5px;
+            border-radius: 5px;
+            border: none;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="neon-text" id="neon">NEON<br>霓虹燈</div>
+
+    <!-- 控制項區域 -->
+    <div class="controls">
+        <div>
+            <label>光暈擴散範圍：</label>
+            <input type="range" min="1" max="50" value="10" 
+                   oninput="document.getElementById('neon').style.setProperty('--glow', this.value + 'px')">
+        </div>
+
+        <div>
+            <label>燈管(筆畫)粗細：</label>
+            <input type="range" min="1" max="5" step="0.5" value="2" 
+                   oninput="document.getElementById('neon').style.setProperty('--stroke-width', this.value + 'px')">
+        </div>
+        
+        <div>
+            <label>整體亮度：</label>
+            <input type="range" min="50" max="200" value="100" 
+                   oninput="document.getElementById('neon').style.setProperty('--brightness', this.value + '%')">
+        </div>
+
+        <div>
+            <label>調整顏色：</label>
+            <input type="color" value="#00ffff" 
+                   oninput="document.getElementById('neon').style.setProperty('--neon-color', this.value)">
+        </div>
+
+        <div>
+            <label>選擇字型：</label>
+            <!-- 新增：字型挑選器 -->
+            <select onchange="document.getElementById('neon').style.setProperty('--font-family', this.value)">
+                <option value="sans-serif">預設 (Sans-serif)</option>
+                <option value="serif">襯線體 (Serif)</option>
+                <option value="monospace">等寬字體 (Monospace)</option>
+                <option value="cursive">手寫風格 (Cursive)</option>
+                <option value="fantasy">裝飾風格 (Fantasy)</option>
+                <option value="'Courier New', monospace">打字機 (Courier New)</option>
+                <option value="'Arial Black', sans-serif">粗黑體 (Arial Black)</option>
+            </select>
+        </div>
+    </div>
+
+</body>
+</html>
