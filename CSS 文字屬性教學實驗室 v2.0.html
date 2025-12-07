@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS 文字屬性教學實驗室 v2.0</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --bg-color: #f4f7f6;
+            --panel-bg: #ffffff;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 15px;
+            flex-shrink: 0; /* 防止 header 被壓縮 */
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            color: #2c3e50;
+        }
+
+        p.subtitle {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        /* 主要佈局 */
+        .container {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+            overflow: hidden; /* 防止整個頁面捲動 */
+        }
+
+        /* 左側控制面板 */
+        .controls-panel {
+            flex: 0 0 320px; /* 固定寬度，避免擠壓 */
+            background: var(--panel-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow-y: auto; /* 只有控制面板內部捲動 */
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .control-group:last-child {
+            border-bottom: none;
+        }
+
+        .control-group h3 {
+            margin-top: 0;
+            font-size: 1rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            border-left: 4px solid var(--primary-color);
+            padding-left: 8px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: bold;
+            flex: 1;
+        }
+
+        input[type="range"] {
+            flex: 2;
+            margin: 0 10px;
+            cursor: pointer;
+        }
+
+        input[type="color"] {
+            cursor: pointer;
+            border: none;
+            width: 40px;
+            height: 30px;
+            background: none;
+            padding: 0;
+        }
+
+        select {
+            padding: 4px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 0.85rem;
+        }
+
+        .value-display {
+            font-family: monospace;
+            font-size: 0.8rem;
+            width: 45px;
+            text-align: right;
+            color: #666;
+        }
+
+        /* 右側預覽與輸出 - 修改版面比例 */
+        .preview-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-width: 0; /* 防止 flex item 溢出 */
+        }
+
+        /* 預覽視窗 - 高度減少 */
+        .preview-box {
+            flex: 0.8; /* 降低權重，讓高度變小 */
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px; /* 減少 padding */
+            overflow: hidden;
+            /* 預設背景為透明格線，JS 會覆蓋這個顏色 */
+            background-image: radial-gradient(#ccc 1px, transparent 1px); 
+            background-size: 20px 20px;
+            border: 1px solid #e0e0e0;
+            position: relative;
+        }
+
+        #sampleText {
+            transition: all 0.1s ease;
+            max-width: 100%;
+            word-wrap: break-word;
+            z-index: 2;
+        }
+
+        /* CSS 輸出框 - 高度增加 */
+        .code-output {
+            flex: 1.2; /* 增加權重，讓高度變高 */
+            background: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 12px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: auto;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .code-output pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.2s;
+            z-index: 10;
+        }
+
+        .copy-btn:hover {
+            background: #357abd;
+        }
+
+        /* RWD 調整 */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                height: auto;
+                overflow: visible;
+            }
+            body {
+                height: auto;
+            }
+            .controls-panel {
+                flex: none;
+                width: auto;
+            }
+            .preview-box {
+                min-height: 200px;
+            }
+            .code-output {
+                min-height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>CSS 文字屬性教學實驗室 v2.0</h1>
+    <p class="subtitle">調整色彩與數值，即時觀察透明度(RGBA)與樣式變化</p>
+</header>
+
+<div class="container">
+    <div class="controls-panel">
+        
+        <div class="control-group">
+            <h3>環境設定 (Environment)</h3>
+            <div class="input-wrapper">
+                <label for="bgColor">預覽區背景色</label>
+                <input type="color" id="bgColor" value="#ffffff">
+                <span class="value-display" id="bgColorVal">#fff</span>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>文字色彩 (Color & Alpha)</h3>
+            
+            <div class="input-wrapper">
+                <label for="color">文字顏色 (Hex)</label>
+                <input type="color" id="color" value="#333333">
+                <span class="value-display" id="colorVal">#333</span>
+            </div>
+
+            <div class="input-wrapper">
+                <label for="textOpacity">文字不透明度 (Alpha)</label>
+                <input type="range" id="textOpacity" min="0" max="1" step="0.05" value="1">
+                <span class="value-display" id="textOpacityVal">1.0</span>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>字體設定 (Font)</h3>
+            
+            <div class="input-wrapper">
+                <label for="fontSize">大小 (font-size)</label>
+                <input type="range" id="fontSize" min="12" max="100" value="48">
+                <span class="value-display" id="fontSizeVal">48px</span>
+            </div>
+
+            <div class="input-wrapper">
+                <label for="fontWeight">粗細 (font-weight)</label>
+                <input type="range" id="fontWeight" min="100" max="900" step="100" value="700">
+                <span class="value-display" id="fontWeightVal">700</span>
+            </div>
+
+            <div class="input-wrapper">
+                <label for="fontFamily">字型 (font-family)</label>
+                <select id="fontFamily">
+                    <option value="'Microsoft JhengHei', sans-serif">微軟正黑體</option>
+                    <option value="'Times New Roman', serif">襯線體 (Serif)</option>
+                    <option value="'Arial', sans-serif">無襯線體 (Sans-Serif)</option>
+                    <option value="'Courier New', monospace">等寬 (Monospace)</option>
+                    <option value="cursive">手寫 (Cursive)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>排版 (Spacing & Align)</h3>
+
+            <div class="input-wrapper">
+                <label for="letterSpacing">字距 (letter-spacing)</label>
+                <input type="range" id="letterSpacing" min="-5" max="30" step="1" value="2">
+                <span class="value-display" id="letterSpacingVal">2px</span>
+            </div>
+
+            <div class="input-wrapper">
+                <label for="lineHeight">行高 (line-height)</label>
+                <input type="range" id="lineHeight" min="0.8" max="3" step="0.1" value="1.4">
+                <span class="value-display" id="lineHeightVal">1.4</span>
+            </div>
+
+            <div class="input-wrapper">
+                <label for="textAlign">對齊 (text-align)</label>
+                <select id="textAlign">
+                    <option value="center" selected>置中 (center)</option>
+                    <option value="left">靠左 (left)</option>
+                    <option value="right">靠右 (right)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>文字陰影 (Text Shadow)</h3>
+            <div class="input-wrapper">
+                <label>X 偏移</label>
+                <input type="range" id="shadowX" min="-20" max="20" value="4">
+                <span class="value-display" id="shadowXVal">4px</span>
+            </div>
+            <div class="input-wrapper">
+                <label>Y 偏移</label>
+                <input type="range" id="shadowY" min="-20" max="20" value="4">
+                <span class="value-display" id="shadowYVal">4px</span>
+            </div>
+            <div class="input-wrapper">
+                <label>模糊度</label>
+                <input type="range" id="shadowBlur" min="0" max="20" value="10">
+                <span class="value-display" id="shadowBlurVal">10px</span>
+            </div>
+            <div class="input-wrapper">
+                <label>陰影色</label>
+                <input type="color" id="shadowColor" value="#999999">
+            </div>
+        </div>
+
+    </div>
+
+    <div class="preview-panel">
+        <div class="preview-box" id="previewBox">
+            <div id="sampleText" contenteditable="true" spellcheck="false">
+                Teaching CSS<br>RGBA & Colors
+            </div>
+        </div>
+
+        <div class="code-output">
+            <button class="copy-btn" onclick="copyCSS()">複製 CSS</button>
+            <pre id="cssOutput"></pre>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 取得所有控制元件
+    const inputs = {
+        bgColor: document.getElementById('bgColor'), // 新增背景色
+        fontSize: document.getElementById('fontSize'),
+        color: document.getElementById('color'),
+        textOpacity: document.getElementById('textOpacity'), // 新增透明度
+        fontWeight: document.getElementById('fontWeight'),
+        letterSpacing: document.getElementById('letterSpacing'),
+        lineHeight: document.getElementById('lineHeight'),
+        textAlign: document.getElementById('textAlign'),
+        fontFamily: document.getElementById('fontFamily'),
+        shadowX: document.getElementById('shadowX'),
+        shadowY: document.getElementById('shadowY'),
+        shadowBlur: document.getElementById('shadowBlur'),
+        shadowColor: document.getElementById('shadowColor')
+    };
+
+    // 取得顯示數值的 span
+    const displays = {
+        bgColor: document.getElementById('bgColorVal'),
+        fontSize: document.getElementById('fontSizeVal'),
+        color: document.getElementById('colorVal'),
+        textOpacity: document.getElementById('textOpacityVal'),
+        fontWeight: document.getElementById('fontWeightVal'),
+        letterSpacing: document.getElementById('letterSpacingVal'),
+        lineHeight: document.getElementById('lineHeightVal'),
+        shadowX: document.getElementById('shadowXVal'),
+        shadowY: document.getElementById('shadowYVal'),
+        shadowBlur: document.getElementById('shadowBlurVal')
+    };
+
+    const sampleText = document.getElementById('sampleText');
+    const previewBox = document.getElementById('previewBox');
+    const cssOutput = document.getElementById('cssOutput');
+
+    // 工具函式：Hex 轉 RGB
+    function hexToRgb(hex) {
+        // 去掉 #
+        hex = hex.replace('#', '');
+        
+        // 處理縮寫 (如 #333 -> #333333)
+        if (hex.length === 3) {
+            hex = hex.split('').map(char => char + char).join('');
+        }
+
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+
+        return { r, g, b };
+    }
+
+    // 監聽所有 input
+    Object.values(inputs).forEach(input => {
+        input.addEventListener('input', updateStyles);
+    });
+
+    function updateStyles() {
+        // 1. 處理背景色
+        const bg = inputs.bgColor.value;
+        previewBox.style.backgroundColor = bg;
+        displays.bgColor.innerText = bg;
+
+        // 2. 處理文字顏色 (Hex + Opacity -> RGBA)
+        const hex = inputs.color.value;
+        const opacity = inputs.textOpacity.value;
+        const rgb = hexToRgb(hex);
+        
+        // 判斷是否需要用 rgba (如果透明度不是 1)
+        let colorString;
+        if (parseFloat(opacity) === 1) {
+            colorString = hex; // 不透明時使用 Hex 比較乾淨
+        } else {
+            colorString = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
+        }
+
+        // 3. 獲取其他數值
+        const size = inputs.fontSize.value + 'px';
+        const weight = inputs.fontWeight.value;
+        const spacing = inputs.letterSpacing.value + 'px';
+        const height = inputs.lineHeight.value;
+        const align = inputs.textAlign.value;
+        const family = inputs.fontFamily.value;
+        
+        // 陰影
+        const sX = inputs.shadowX.value + 'px';
+        const sY = inputs.shadowY.value + 'px';
+        const sBlur = inputs.shadowBlur.value + 'px';
+        const sColor = inputs.shadowColor.value;
+        const shadow = `${sX} ${sY} ${sBlur} ${sColor}`;
+
+        // 4. 更新 UI 數值顯示
+        displays.color.innerText = hex;
+        displays.textOpacity.innerText = opacity;
+        displays.fontSize.innerText = size;
+        displays.fontWeight.innerText = weight;
+        displays.letterSpacing.innerText = spacing;
+        displays.lineHeight.innerText = height;
+        displays.shadowX.innerText = sX;
+        displays.shadowY.innerText = sY;
+        displays.shadowBlur.innerText = sBlur;
+
+        // 5. 套用樣式
+        sampleText.style.color = colorString;
+        sampleText.style.fontSize = size;
+        sampleText.style.fontWeight = weight;
+        sampleText.style.letterSpacing = spacing;
+        sampleText.style.lineHeight = height;
+        sampleText.style.textAlign = align;
+        sampleText.style.fontFamily = family;
+        sampleText.style.textShadow = shadow;
+
+        // 6. 生成 CSS 代碼 (包含背景與文字設定)
+        const cssCode = `/* Container Style */
+.preview-box {
+    background-color: ${bg};
+}
+
+/* Text Style */
+.my-text {
+    font-size: ${size};
+    color: ${colorString}; /* ${parseFloat(opacity) < 1 ? '使用 RGBA 實現透明度' : 'Hex 顏色碼'} */
+    font-weight: ${weight};
+    font-family: ${family};
+    text-align: ${align};
+    line-height: ${height};
+    letter-spacing: ${spacing};
+    text-shadow: ${shadow};
+}`;
+        cssOutput.innerText = cssCode;
+    }
+
+    // 複製功能
+    function copyCSS() {
+        navigator.clipboard.writeText(cssOutput.innerText).then(() => {
+            const btn = document.querySelector('.copy-btn');
+            const originalText = btn.innerText;
+            btn.innerText = "複製成功！";
+            btn.style.background = "#27ae60";
+            
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.background = "";
+            }, 1500);
+        });
+    }
+
+    updateStyles();
+</script>
+
+</body>
+</html>
