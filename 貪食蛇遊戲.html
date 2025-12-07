@@ -137,7 +137,7 @@
             isPaused = false;
             overlay.classList.add('hidden');
             if (gameInterval) clearInterval(gameInterval);
-            gameInterval = setInterval(gameLoop, 1000 / 10); // 10 FPS
+            gameInterval = setInterval(gameLoop, 1000 / 5); 
         }
 
         function togglePause() {
@@ -151,7 +151,7 @@
                 clearInterval(gameInterval);
             } else {
                 overlay.classList.add('hidden');
-                gameInterval = setInterval(gameLoop, 1000 / 10);
+                gameInterval = setInterval(gameLoop, 1000 / 5);
             }
         }
 
